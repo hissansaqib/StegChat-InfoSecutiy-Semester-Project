@@ -1,0 +1,38 @@
+{
+  "name": "stegchat-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext .ts,.tsx",
+    "test": "vitest",
+    "api:types": "openapi-typescript http://localhost:8000/openapi.json --output src/api/types.ts"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.24.1",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "react-router-dom": "^6.22.2",
+    "recharts": "^2.12.5",
+    "tailwindcss": "^3.4.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.79",
+    "@types/react-dom": "^18.2.24",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.5.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react": "^7.35.2",
+    "openapi-typescript": "^6.8.0",
+    "postcss": "^8.4.38",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.10",
+    "vitest": "^2.0.2",
+    "@testing-library/react": "^16.0.0",
+    "@testing-library/jest-dom": "^6.4.5"
+  }
+}
+

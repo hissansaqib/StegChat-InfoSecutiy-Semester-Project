@@ -1,0 +1,30 @@
+[project]
+name = "stegchat-backend"
+version = "0.1.0"
+description = "Backend for StegChat – modular monolith"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "pydantic",
+    "sqlalchemy",
+    "alembic",
+    "python-dotenv",
+    "ruff",
+    "pytest",
+    "mypy"
+]
+
+[tool.ruff]
+select = ["E", "F", "W", "C90"]
+line-length = 120
+ignore = []
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true

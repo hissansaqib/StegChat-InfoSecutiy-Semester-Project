@@ -1,0 +1,10 @@
+.env
+*.db
+uploads/
+node_modules/
+.venv/
+__pycache__/
+models/*.joblib
+dist/
+coverage/
+

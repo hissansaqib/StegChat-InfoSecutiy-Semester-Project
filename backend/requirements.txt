@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+pydantic
+sqlalchemy
+alembic
+python-dotenv
+ruff
+pytest
+mypy
+numpy
+pillow
+cryptography
+
