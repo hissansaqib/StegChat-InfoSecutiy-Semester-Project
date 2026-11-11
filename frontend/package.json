@@ -26,7 +26,7 @@
     "eslint": "^9.5.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-react": "^7.35.2",
-    "openapi-typescript": "^6.8.0",
+    "openapi-typescript": "^6.7.6",
     "postcss": "^8.4.38",
     "typescript": "^5.4.5",
     "vite": "^5.2.10",

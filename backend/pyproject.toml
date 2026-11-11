@@ -12,7 +12,23 @@ dependencies = [
     "python-dotenv",
     "ruff",
     "pytest",
-    "mypy"
+    "mypy",
+    "argon2-cffi",
+    "pillow",
+    "numpy",
+    "scikit-learn",
+    "joblib",
+
+    "fastapi",
+    "uvicorn[standard]",
+    "pydantic",
+    "sqlalchemy",
+    "alembic",
+    "python-dotenv",
+    "ruff",
+    "pytest",
+    "mypy",
+    "argon2-cffi"
 ]
 
 [tool.ruff]
