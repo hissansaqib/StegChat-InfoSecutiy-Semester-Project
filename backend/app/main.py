@@ -3,9 +3,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from .core.config import Settings
 from .core.logging import logger
 from .api import health, carriers, auth, users, conversations, lab, bench, analysis, recommend, reports
+from .db.base import Base
+from .db.session import engine
+import backend.app.db.models
 from uuid import uuid4
 
 def create_app() -> FastAPI:
+    # Ensure database schema and tables exist on application startup
+    Base.metadata.create_all(bind=engine)
     settings = Settings()
     app = FastAPI(title="StegChat Backend", version="0.1.0")
 
