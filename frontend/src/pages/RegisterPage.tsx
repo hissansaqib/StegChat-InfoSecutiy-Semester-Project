@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../api/client';
 import { useAuth } from '../contexts/AuthContext';
@@ -19,9 +19,31 @@ export const RegisterPage: React.FC = () => {
   const [otpCode, setOtpCode] = useState('');
   const [devHint, setDevHint] = useState('');
   const [resending, setResending] = useState(false);
+  const [cooldown, setCooldown] = useState(60);
 
   const { setUser } = useAuth();
   const navigate = useNavigate();
+
+  // Cooldown countdown timer for OTP resend
+  useEffect(() => {
+    let timer: any = null;
+    if (mfaStep && cooldown > 0) {
+      timer = setInterval(() => {
+        setCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [mfaStep, cooldown]);
+
+  // Live password validation criteria
+  const hasLength = password.length >= 10;
+  const hasUpper = /[A-Z]/.test(password);
+  const hasLower = /[a-z]/.test(password);
+  const hasDigit = /\d/.test(password);
+  const passwordsMatch = password && confirmPassword && password === confirmPassword;
+  const isPasswordValid = hasLength && hasUpper && hasLower && hasDigit;
 
   const handleInitiateRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,13 +71,8 @@ export const RegisterPage: React.FC = () => {
       return;
     }
 
-    if (password.length < 8) {
-      setError('Password must contain at least 8 characters.');
-      return;
-    }
-
-    if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
-      setError('Password must contain at least one letter and at least one number.');
+    if (!isPasswordValid) {
+      setError('Password must be at least 10 characters long and include an uppercase letter, lowercase letter, and a number.');
       return;
     }
 
@@ -77,6 +94,7 @@ export const RegisterPage: React.FC = () => {
         setVerificationId(res.verification_id);
         setTargetEmail(res.email);
         setDevHint(res.dev_hint || '');
+        setCooldown(60);
         setMfaStep(true);
       }
     } catch (err: any) {
@@ -111,11 +129,13 @@ export const RegisterPage: React.FC = () => {
   };
 
   const handleResend = async () => {
+    if (cooldown > 0) return;
     setError('');
     setResending(true);
     try {
       const res = await api.resendOtp({ verification_id: verificationId });
       setDevHint(res.dev_hint || '');
+      setCooldown(60);
       alert(res.message || 'A fresh verification code has been dispatched.');
     } catch (err: any) {
       setError(err.message || 'Failed to resend code.');
@@ -218,7 +238,7 @@ export const RegisterPage: React.FC = () => {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Min 8 chars, 1 letter, 1 num"
+                  placeholder="Min 10 chars, uppercase, lowercase, number"
                   className="w-full px-3.5 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition placeholder:text-slate-500"
                 />
               </div>
@@ -231,15 +251,41 @@ export const RegisterPage: React.FC = () => {
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="••••••••••"
                   className="w-full px-3.5 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition placeholder:text-slate-500"
                 />
               </div>
             </div>
 
+            {/* Live Password Strength / Policy Indicator */}
+            {password && (
+              <div className="p-3 bg-slate-800/60 border border-slate-700/50 rounded-xl text-xs space-y-1">
+                <div className="font-semibold text-slate-300 mb-1">Security Requirements:</div>
+                <div className="grid grid-cols-2 gap-1 text-[11px]">
+                  <span className={hasLength ? 'text-emerald-400 font-medium' : 'text-slate-400'}>
+                    {hasLength ? '✓' : '○'} At least 10 characters
+                  </span>
+                  <span className={hasUpper ? 'text-emerald-400 font-medium' : 'text-slate-400'}>
+                    {hasUpper ? '✓' : '○'} Uppercase letter (A-Z)
+                  </span>
+                  <span className={hasLower ? 'text-emerald-400 font-medium' : 'text-slate-400'}>
+                    {hasLower ? '✓' : '○'} Lowercase letter (a-z)
+                  </span>
+                  <span className={hasDigit ? 'text-emerald-400 font-medium' : 'text-slate-400'}>
+                    {hasDigit ? '✓' : '○'} Number (0-9)
+                  </span>
+                </div>
+                {confirmPassword && (
+                  <div className={`pt-1 text-[11px] ${passwordsMatch ? 'text-emerald-400 font-medium' : 'text-rose-400'}`}>
+                    {passwordsMatch ? '✓ Passwords match' : '✗ Passwords do not match'}
+                  </div>
+                )}
+              </div>
+            )}
+
             <button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || !isPasswordValid || !passwordsMatch}
               className="w-full mt-3 py-3 px-4 bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white text-sm font-semibold rounded-xl shadow-lg shadow-indigo-600/30 transition disabled:opacity-50"
             >
               {submitting ? 'Creating Account & Dispatching OTP...' : 'Send Verification Code (MFA)'}
@@ -281,11 +327,15 @@ export const RegisterPage: React.FC = () => {
               </button>
               <button
                 type="button"
-                disabled={resending}
+                disabled={resending || cooldown > 0}
                 onClick={handleResend}
                 className="text-indigo-400 hover:text-indigo-300 font-medium transition disabled:opacity-50"
               >
-                {resending ? 'Sending...' : 'Resend Code'}
+                {resending
+                  ? 'Sending...'
+                  : cooldown > 0
+                  ? `Resend Code in ${cooldown}s`
+                  : 'Resend Code'}
               </button>
             </div>
           </form>

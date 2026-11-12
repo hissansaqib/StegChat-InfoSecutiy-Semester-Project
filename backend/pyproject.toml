@@ -1,3 +1,6 @@
+[tool.poetry]
+package-mode = false
+
 [project]
 name = "stegchat-backend"
 version = "0.1.0"
@@ -14,11 +17,11 @@ dependencies = [
     "pytest",
     "mypy",
     "argon2-cffi",
+    "cryptography",
     "pillow",
     "numpy",
     "scikit-learn",
     "joblib",
-
     "fastapi",
     "uvicorn[standard]",
     "pydantic",
@@ -28,7 +31,10 @@ dependencies = [
     "ruff",
     "pytest",
     "mypy",
-    "argon2-cffi"
+    "argon2-cffi",
+    "bcrypt",
+    "python-multipart",
+    "pydantic-settings (>=2.16.2,<3.0.0)"
 ]
 
 [tool.ruff]

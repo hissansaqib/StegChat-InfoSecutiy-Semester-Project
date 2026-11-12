@@ -29,6 +29,7 @@ export const HistoryPage: React.FC = () => {
                 <th className="p-3">Experiment Label</th>
                 <th className="p-3">Carrier</th>
                 <th className="p-3">Payload</th>
+                <th className="p-3">SHA-256 Hash</th>
                 <th className="p-3">Embed Time</th>
                 <th className="p-3">Extract Time</th>
                 <th className="p-3">Recovery</th>
@@ -42,6 +43,15 @@ export const HistoryPage: React.FC = () => {
                   <td className="p-3 font-medium text-white">{r.name}</td>
                   <td className="p-3 font-mono text-xs">{r.carrier_id}</td>
                   <td className="p-3">{r.payload_size} B</td>
+                  <td className="p-3">
+                    {r.stego_sha256 ? (
+                      <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 font-mono text-[11px] text-cyan-300" title={`Full: ${r.stego_sha256}`}>
+                        {r.stego_sha256.substring(0, 8)}…
+                      </span>
+                    ) : (
+                      <span className="text-slate-600 font-mono text-xs">-</span>
+                    )}
+                  </td>
                   <td className="p-3">{r.embed_time_ms} ms</td>
                   <td className="p-3">{r.extract_time_ms} ms</td>
                   <td className="p-3 font-bold text-emerald-400">

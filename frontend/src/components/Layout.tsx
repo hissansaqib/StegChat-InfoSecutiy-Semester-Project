@@ -28,6 +28,8 @@ export const Layout: React.FC = () => {
     { label: 'Steganalysis', icon: '🔍', path: '/analysis', desc: 'Statistical anomaly detector' },
     { label: 'Recommender', icon: '🎯', path: '/recommender', desc: 'Carrier optimization engine' },
     { label: 'Experiment History', icon: '📜', path: '/history', desc: 'Artifact logs & telemetry' },
+    { label: 'Hash & Integrity Tool', icon: '🛡️', path: '/hash-tool', desc: 'SHA-256, SHA-512 & HMAC' },
+    { label: 'Settings & Crypto', icon: '⚙️', path: '/settings', desc: 'Ciphers, keys & tiers' },
   ];
 
   return (
