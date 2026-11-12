@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     session_expire_seconds: int = Field(default=86400, description="Session expiry in seconds")
     csrf_cookie_name: str = Field(default="stegchat_csrf", description="Name of the CSRF token cookie")
     app_env: str = Field(default="development", description="Application environment")
+    dev_show_otp: bool = Field(default=False, description="Expose OTP in development", env="DEV_SHOW_OTP")
 
     @validator("cors_allow_origins", pre=True)
     def split_comma(cls, v: str | List[str]) -> List[str]:

@@ -13,7 +13,7 @@ import hashlib
 import hmac
 import io
 import time
-from typing import BinaryIO, Callable, Dict, List, Tuple
+from typing import BinaryIO, Callable, Dict, List, Tuple, Any
 import argon2
 import bcrypt
 

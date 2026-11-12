@@ -26,6 +26,7 @@ class User(Base):
     sessions = relationship("Session", back_populates="user", cascade="all, delete-orphan")
     audit_events = relationship("AuditEvent", back_populates="user", cascade="all, delete-orphan")
 
+
     __table_args__ = (
         Index("ix_users_username_ci", func.lower(username), unique=True),
         Index("ix_users_email_ci", func.lower(email), unique=True),
@@ -104,6 +105,8 @@ class ConversationMember(Base):
 
 class Message(Base):
     __tablename__ = "messages"
+    mode = Column(String, nullable=False, default="normal")  # normal | secret
+    attachment_id = Column(String, ForeignKey("attachments.id"), nullable=True)
     id = Column(String, primary_key=True, default=_generate_uuid)
     conversation_id = Column(String, ForeignKey("conversations.id"), nullable=False, index=True)
     sender_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
@@ -115,21 +118,35 @@ class Message(Base):
     read_at = Column(DateTime, nullable=True)
     conversation = relationship("Conversation", back_populates="messages")
     sender = relationship("User")
+    attachment = relationship("Attachment", backref="message", uselist=False)
 
 class ExperimentRun(Base):
     __tablename__ = "experiment_runs"
+
     id = Column(String, primary_key=True, default=_generate_uuid)
-    name = Column(String, nullable=False)
+    name = Column(String, nullable=False)  # e.g., "delivery" or "lab" or "bench"
+    owner_id = Column(String, nullable=True)  # ID of the user who created the run
+    suite_id = Column(String, nullable=True)  # FK to BenchSuite.id (optional)
     carrier_id = Column(String, nullable=False)
     algorithm = Column(String, nullable=True, default="aes-256-gcm")
     payload_size = Column(Integer, nullable=False)
     cover_sha256 = Column(String(64), nullable=True)
     stego_sha256 = Column(String(64), nullable=True)
-    recovery_rate = Column(Integer, default=1)
+    recovery_rate = Column(Integer, default=0)
     embed_time_ms = Column(Integer, default=0)
     extract_time_ms = Column(Integer, default=0)
     status = Column(String, default="completed")
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    # Lab-specific fields
+    seed = Column(String, nullable=True)
+    config = Column(JSON, nullable=True)
+    capacity_bytes = Column(Integer, nullable=True)
+    size_overhead = Column(Integer, nullable=True)
+    recovered = Column(Boolean, default=False)
+    measurements = Column(JSON, nullable=True)
+    hashes = Column(JSON, nullable=True)
+    module_version = Column(String, nullable=True)
+    error_code = Column(String, nullable=True)
 
 class Attachment(Base):
     __tablename__ = "attachments"

@@ -1,9 +1,12 @@
 .env
 *.db
+*.db-shm
+*.db-wal
 uploads/
 node_modules/
 .venv/
 __pycache__/
+*.pyc
 models/*.joblib
 dist/
 coverage/

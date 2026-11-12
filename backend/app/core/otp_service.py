@@ -49,10 +49,25 @@ def generate_otp_code() -> str:
     return f"{secrets.randbelow(900000) + 100000}"
 
 def should_expose_dev_otp() -> bool:
-    """Expose dev OTP only if APP_ENV=development and DEV_SHOW_OTP=true."""
-    app_env = os.getenv("APP_ENV", "development").lower()
-    dev_show = os.getenv("DEV_SHOW_OTP", "false").lower() in ("true", "1", "yes")
+    """Return True only when APP_ENV=development AND DEV_SHOW_OTP=true.
+
+    Security contract:
+    - In production this always returns False regardless of DEV_SHOW_OTP.
+    - If DEV_SHOW_OTP is mistakenly set to true in production, a RuntimeError is
+      raised at startup to prevent silent OTP leakage.
+    """
+    from .config import Settings  # local import to avoid circular dependency
+    settings = Settings()
+    app_env = settings.app_env.lower()
+    dev_show = settings.dev_show_otp
+    if app_env == "production" and dev_show:
+        raise RuntimeError(
+            "SECURITY: DEV_SHOW_OTP must not be enabled in a production environment. "
+            "Set DEV_SHOW_OTP=false or remove it from .env immediately."
+        )
     return app_env == "development" and dev_show
+
+
 
 def send_otp_email(to_email: str, otp_code: str, purpose: str = "authentication") -> None:
     """Send OTP email via SMTP if configured, or log to development console."""

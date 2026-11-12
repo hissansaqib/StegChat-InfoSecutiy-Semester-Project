@@ -1,5 +1,6 @@
 """Conversations and messaging router with Tier 1 At-Rest Cipher Encryption."""
 
+import base64
 import json
 import uuid
 from datetime import datetime
@@ -191,7 +192,7 @@ def send_message(
         id=msg_id,
         conversation_id=conversation_id,
         sender_id=current_user.id,
-        payload=envelope.dict(),  # Stored strictly as ciphertext envelope
+        payload=envelope.model_dump(),  # Stored strictly as ciphertext envelope
         stego_sha256=stego_hash,
     )
     db.add(msg)

@@ -6,7 +6,7 @@ from typing import List, Dict, Any, Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from ..carriers import get_carrier
-from ..crypto import LabCipher, SUPPORTED_ALGORITHMS
+from ..crypto import LabCipher, CryptoEnvelope, SUPPORTED_ALGORITHMS
 
 router = APIRouter(tags=["bench"])
 
@@ -54,7 +54,8 @@ def run_benchmark(req: BenchRunRequest):
         t1 = time.perf_counter()
         try:
             extracted_env_bytes = carrier.extract(stego=stego, params={"seed": seed})
-            decrypted = lab_cipher.decrypt(extracted_env_bytes.decode("utf-8"))
+            envelope_obj = CryptoEnvelope.from_string(extracted_env_bytes.decode("utf-8"))
+            decrypted = lab_cipher.decrypt(envelope_obj)
             extract_times.append((time.perf_counter() - t1) * 1000)
             if decrypted == raw_payload:
                 recovered_count += 1

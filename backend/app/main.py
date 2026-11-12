@@ -44,6 +44,9 @@ def create_app() -> FastAPI:
     app.include_router(recommend.router, prefix="/api/v1")
     app.include_router(reports.router, prefix="/api/v1")
     app.include_router(crypto.router, prefix="/api/v1")
+    # Include key management router
+    from .api import keys
+    app.include_router(keys.router, prefix="/api/v1")
     app.include_router(integrity.router, prefix="/api/v1")
     app.include_router(attachments.router, prefix="/api/v1")
 

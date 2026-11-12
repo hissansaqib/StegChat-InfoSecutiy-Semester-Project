@@ -14,6 +14,8 @@ Features:
 
 from __future__ import annotations
 
+import hashlib
+import base64
 import os
 import secrets
 import time
@@ -146,6 +148,21 @@ def initiate_registration(req: RegisterInitiateRequest, request: Request, db: Se
 
     if db.query(User).filter(User.email == clean_email).first():
         raise HTTPException(status_code=400, detail="An account is already registered with this email address.")
+
+    # Also block duplicate pending OTP sessions for the same email that haven't been consumed yet.
+    # This prevents the same email from getting multiple valid OTPs simultaneously.
+    existing_otp = db.query(OTPVerification).filter(
+        OTPVerification.email == clean_email,
+        OTPVerification.purpose == "register",
+        OTPVerification.consumed == False,
+        OTPVerification.expires_at > datetime.utcnow(),
+    ).first()
+    if existing_otp:
+        raise HTTPException(
+            status_code=400,
+            detail="A verification code was already sent to this email address. "
+                   "Please check your inbox or wait for it to expire before trying again.",
+        )
 
     # Generate OTP and store ONLY HMAC-SHA256
     otp_code = generate_otp_code()

@@ -1,6 +1,7 @@
 fastapi
 uvicorn[standard]
 pydantic
+pydantic-settings
 sqlalchemy
 alembic
 python-dotenv
@@ -11,4 +12,5 @@ numpy
 pillow
 cryptography
 argon2-cffi
-
+python-multipart
+bcrypt
