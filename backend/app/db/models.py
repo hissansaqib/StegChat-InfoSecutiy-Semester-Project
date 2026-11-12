@@ -110,11 +110,28 @@ class Message(Base):
     sender_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
     # encrypted payload stored as JSON string
     payload = Column(JSON, nullable=False)
+    cover_sha256 = Column(String(64), nullable=True)
+    stego_sha256 = Column(String(64), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     delivered_at = Column(DateTime, nullable=True)
     read_at = Column(DateTime, nullable=True)
     conversation = relationship("Conversation", back_populates="messages")
     sender = relationship("User")
+
+class ExperimentRun(Base):
+    __tablename__ = "experiment_runs"
+    id = Column(String, primary_key=True, default=_generate_uuid)
+    name = Column(String, nullable=False)
+    carrier_id = Column(String, nullable=False)
+    algorithm = Column(String, nullable=True, default="aes-256-gcm")
+    payload_size = Column(Integer, nullable=False)
+    cover_sha256 = Column(String(64), nullable=True)
+    stego_sha256 = Column(String(64), nullable=True)
+    recovery_rate = Column(Integer, default=1)
+    embed_time_ms = Column(Integer, default=0)
+    extract_time_ms = Column(Integer, default=0)
+    status = Column(String, default="completed")
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
 class Attachment(Base):
     __tablename__ = "attachments"

@@ -15,16 +15,7 @@ from ..core.otp_service import validate_email_address, generate_otp_code, send_o
 
 router = APIRouter(tags=["auth"])
 
-def hash_password(password: str) -> str:
-    pwd_bytes = password.encode("utf-8")
-    salt = bcrypt.gensalt()
-    return bcrypt.hashpw(pwd_bytes, salt).decode("utf-8")
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    try:
-        return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
-    except Exception:
-        return False
+from ..integrity import hash_password, verify_and_rehash_password
 
 def validate_password_strength(password: str) -> None:
     if len(password) < 8:
@@ -147,8 +138,13 @@ def initiate_login(req: LoginInitiateRequest, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=401, detail="Account not found with provided username/email.")
 
-    if not verify_password(req.password, user.password_hash):
+    is_valid, needs_rehash, new_argon2_hash = verify_and_rehash_password(req.password, user.password_hash)
+    if not is_valid:
         raise HTTPException(status_code=401, detail="Incorrect password. Please verify and try again.")
+
+    if needs_rehash and new_argon2_hash:
+        user.password_hash = new_argon2_hash
+        db.commit()
 
     # Send MFA OTP
     otp_code = generate_otp_code()

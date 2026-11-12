@@ -167,7 +167,14 @@ export const GuidedDemoPage: React.FC = () => {
               <span className="text-2xl font-bold text-white mt-1 block">
                 {results.embed.embed_time_ms} ms
               </span>
-              <span className="text-xs text-slate-500">Carrier: {results.embed.carrier_size} bytes</span>
+              <div className="flex items-center justify-between text-xs text-slate-500 mt-1">
+                <span>{results.embed.carrier_size} B</span>
+                {results.embed.stego_sha256 && (
+                  <span className="px-1.5 py-0.5 rounded bg-slate-900 font-mono text-[10px] text-indigo-300 border border-slate-700" title={`Full SHA-256: ${results.embed.stego_sha256}`}>
+                    SHA: {results.embed.stego_sha256.substring(0, 8)}…
+                  </span>
+                )}
+              </div>
             </div>
 
             <div className="bg-slate-800 p-4 rounded-lg border border-slate-700">

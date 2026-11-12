@@ -141,3 +141,4 @@ def test_unknown_algorithm_rejected():
     raw["alg"] = "rc4-unsupported"
     with pytest.raises(UnknownAlgorithmError):
         decrypt(raw, FIXED_KEY_32)
+

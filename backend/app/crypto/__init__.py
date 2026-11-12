@@ -348,3 +348,4 @@ def get_at_rest_cipher() -> AtRestCipher:
     if _default_at_rest is None:
         _default_at_rest = AtRestCipher()
     return _default_at_rest
+

@@ -39,3 +39,4 @@ def get_crypto_settings() -> CryptoSettingsResponse:
             "tier_2": "Browser-Encrypted Lab/Covert Steganography (End-to-End or HKDF-derived secret key). The plaintext is never visible in the clear to the backend database.",
         },
     )
+

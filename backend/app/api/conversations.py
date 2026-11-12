@@ -11,6 +11,7 @@ from ..db.session import get_db
 from ..db.models import Conversation, ConversationMember, Message, User
 from ..auth.dependencies import get_current_user
 from ..crypto import get_at_rest_cipher
+from ..integrity import compute_sha256
 
 router = APIRouter(tags=["conversations"])
 
@@ -137,6 +138,8 @@ def list_messages(
             "sender_name": sender.display_name if sender else "Unknown",
             "is_me": m.sender_id == current_user.id,
             "payload": decrypted_payload,
+            "cover_sha256": m.cover_sha256,
+            "stego_sha256": m.stego_sha256,
             "created_at": m.created_at.isoformat() if m.created_at else None,
         })
     return results
@@ -176,11 +179,20 @@ def send_message(
         aad=conversation_id.encode("utf-8"),
     )
 
+    # Compute stego SHA-256 hash if present
+    stego_hash = None
+    if req.carrier_bytes:
+        try:
+            stego_hash = compute_sha256(base64.b64decode(req.carrier_bytes))
+        except Exception:
+            pass
+
     msg = Message(
         id=msg_id,
         conversation_id=conversation_id,
         sender_id=current_user.id,
         payload=envelope.dict(),  # Stored strictly as ciphertext envelope
+        stego_sha256=stego_hash,
     )
     db.add(msg)
     db.commit()

@@ -76,3 +76,4 @@ StegChat structures data protection into two distinct security tiers:
 * **Key Identifiers (`key_id`):** Every envelope records the `key_id` that created it.
 * **Backward Compatibility:** `AtRestCipher.register_historical_key(key_id, key_bytes)` allows older records to remain decryptable after active key rotation.
 * **Production Safety:** In `APP_ENV=production`, the service refuses to boot if `STEGCHAT_MASTER_KEY` is omitted.
+

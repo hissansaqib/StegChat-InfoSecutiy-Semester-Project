@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from ..carriers import get_carrier
 from ..core.carrier import CapacityExceeded, UnsupportedFormat, ExtractionFailed
 from ..crypto import LabCipher, CryptoEnvelope, UnknownAlgorithmError, CryptoDecryptionError
+from ..integrity import compute_sha256
 
 router = APIRouter(tags=["lab"])
 
@@ -59,6 +60,7 @@ def lab_embed(req: LabEmbedRequest):
         raise HTTPException(status_code=415, detail=str(e))
 
     duration_ms = (time.perf_counter() - t0) * 1000
+    stego_hash = compute_sha256(stego_bytes)
 
     return {
         "status": "success",
@@ -68,6 +70,7 @@ def lab_embed(req: LabEmbedRequest):
         "payload_size": len(raw_message),
         "envelope_size": len(envelope_bytes),
         "carrier_size": len(stego_bytes),
+        "stego_sha256": stego_hash,
         "embed_time_ms": round(duration_ms, 2),
         "carrier_bytes": base64.b64encode(stego_bytes).decode("ascii"),
     }
