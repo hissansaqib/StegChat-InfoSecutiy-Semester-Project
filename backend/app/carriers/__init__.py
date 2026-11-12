@@ -1,35 +1,36 @@
-"""Carrier package initialization.
+"""Carrier package registry.
 
-Exports:
-- ``registry`` – dict mapping carrier IDs to carrier classes.
-- ``register(carrier_cls)`` – register a carrier class.
-- ``get_carrier(id)`` – retrieve a carrier class or raise KeyError.
-- ``list_carriers()`` – return a list of available carrier IDs.
+One line per carrier registration using the unified Carrier contract.
 """
 
 from typing import Dict, List, Type
-from ..core.carrier import Carrier
+from ..core.carrier import Carrier, CarrierInfo
 
-registry: Dict[str, Type[Carrier]] = {}
+registry: Dict[str, Carrier] = {}
 
 def register(carrier_cls: Type[Carrier]) -> None:
-    carrier_instance = carrier_cls()
-    carrier_id = carrier_instance.id
-    registry[carrier_id] = carrier_cls
+    """Register an instantiated carrier singleton into the global registry."""
+    instance = carrier_cls()
+    registry[instance.info.id] = instance
 
-def get_carrier(carrier_id: str) -> Type[Carrier]:
+def get_carrier(carrier_id: str) -> Carrier:
+    """Retrieve an instantiated carrier by ID or raise KeyError."""
     if carrier_id not in registry:
         raise KeyError(f"Carrier '{carrier_id}' not found")
     return registry[carrier_id]
 
 def list_carriers() -> List[str]:
+    """Return all registered carrier IDs."""
     return list(registry.keys())
 
-# Register built-in carriers
-from .fake_carrier import FakeCarrier
-from .png_lsb import PngLsbCarrier
-from .wav_lsb import WavLsbCarrier
+def get_all_carrier_info() -> List[CarrierInfo]:
+    """Return metadata and capabilities for all registered carriers."""
+    return [c.info for c in registry.values()]
 
-register(FakeCarrier)
-register(PngLsbCarrier)
-register(WavLsbCarrier)
+# ---------------------------------------------------------------------------
+# One line per carrier registration
+# ---------------------------------------------------------------------------
+from .fake_carrier import FakeCarrier; register(FakeCarrier)
+from .png_lsb import PngLsbCarrier; register(PngLsbCarrier)
+from .wav_lsb import WavLsbCarrier; register(WavLsbCarrier)
+from .text_zw import TextZwCarrier; register(TextZwCarrier)

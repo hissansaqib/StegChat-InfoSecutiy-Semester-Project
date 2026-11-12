@@ -2,10 +2,10 @@
 
 import time
 import uuid
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-from ..carriers import get_carrier, list_carriers
+from ..carriers import get_carrier
 
 router = APIRouter(tags=["bench"])
 
@@ -16,38 +16,41 @@ class BenchRunRequest(BaseModel):
     payload_size: int = Field(64, gt=0)
     iterations: int = Field(3, gt=0, le=20)
     name: str = "Benchmark Suite"
+    seed: Optional[str] = "bench_seed_pcg64_deterministic"
 
 @router.post("/bench/run")
 def run_benchmark(req: BenchRunRequest):
     try:
-        carrier_cls = get_carrier(req.carrier_id)
+        carrier = get_carrier(req.carrier_id)
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Carrier '{req.carrier_id}' not found")
 
-    carrier = carrier_cls()
-    payload = b"A" * req.payload_size
-    key = b"bench_key_12345"
+    payload = b"X" * req.payload_size
+    seed = req.seed
 
     embed_times = []
     extract_times = []
     recovered_count = 0
     stego_size = 0
+    cover = b""
 
     for _ in range(req.iterations):
         t0 = time.perf_counter()
-        stego = carrier.embed(payload, key)
+        stego = carrier.embed(cover=cover, payload=payload, params={"seed": seed})
         embed_times.append((time.perf_counter() - t0) * 1000)
         stego_size = len(stego)
 
         t1 = time.perf_counter()
-        extracted = carrier.extract(stego, key)
-        extract_times.append((time.perf_counter() - t1) * 1000)
+        try:
+            extracted = carrier.extract(stego=stego, params={"seed": seed})
+            extract_times.append((time.perf_counter() - t1) * 1000)
+            if extracted == payload:
+                recovered_count += 1
+        except Exception:
+            extract_times.append((time.perf_counter() - t1) * 1000)
 
-        if extracted == payload:
-            recovered_count += 1
-
-    mean_embed = sum(embed_times) / len(embed_times)
-    mean_extract = sum(extract_times) / len(extract_times)
+    mean_embed = sum(embed_times) / max(1, len(embed_times))
+    mean_extract = sum(extract_times) / max(1, len(extract_times))
     recovery_rate = recovered_count / req.iterations
 
     run_id = str(uuid.uuid4())
