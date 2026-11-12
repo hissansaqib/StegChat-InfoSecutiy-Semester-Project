@@ -122,13 +122,14 @@ def test_tampered_attachment_fails_download_integrity():
     client = TestClient(app)
 
     # 1. Register & verify user
+    os.environ["DEV_SHOW_OTP"] = "true"
     username = f"user_{os.urandom(4).hex()}"
     email = f"{username}@test.com"
     r_reg = client.post("/api/v1/auth/register", json={
         "username": username,
         "email": email,
         "display_name": "Test User",
-        "password": "Password123"
+        "password": "SecurePassword2026!#"
     })
     v_id = r_reg.json()["verification_id"]
     otp = r_reg.json()["dev_hint"].split(": ")[-1]

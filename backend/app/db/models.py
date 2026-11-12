@@ -1,7 +1,4 @@
-"""SQLAlchemy models for authentication and key storage.
-
-These models are additive to the existing codebase.
-"""
+"""SQLAlchemy models for authentication, sessions, audit, and key storage."""
 
 import uuid
 from datetime import datetime
@@ -24,7 +21,6 @@ class User(Base):
     is_admin = Column(Boolean, default=False, nullable=False)
     mfa_enabled = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    # JSON blob storing the encrypted vault bundle (optional)
     key_bundle = Column(String, nullable=True)
 
     sessions = relationship("Session", back_populates="user", cascade="all, delete-orphan")
@@ -43,21 +39,24 @@ class OTPVerification(Base):
 
     id = Column(String, primary_key=True, default=_generate_uuid)
     email = Column(String(255), nullable=False, index=True)
-    otp_code = Column(String(8), nullable=False)
+    otp_hash = Column(String(64), nullable=False)  # HMAC-SHA256(otp_code, server_secret)
     purpose = Column(String(32), nullable=False)  # "register" or "login"
     user_id = Column(String, nullable=True)
     temp_data = Column(JSON, nullable=True)
+    attempts = Column(Integer, default=0, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    last_sent_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     expires_at = Column(DateTime, nullable=False)
     consumed = Column(Boolean, default=False, nullable=False)
-
 
 class Session(Base):
     __tablename__ = "sessions"
 
     id = Column(String, primary_key=True, default=_generate_uuid)
     user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
-    token_hash = Column(String(64), nullable=False, unique=True, index=True)
+    token_hash = Column(String(64), nullable=False, unique=True, index=True)  # SHA-256 of secrets.token_urlsafe(32)
+    ip_address = Column(String(45), nullable=True)
+    user_agent = Column(String(255), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     expires_at = Column(DateTime, nullable=False)
     revoked = Column(Boolean, default=False, nullable=False)
@@ -75,21 +74,21 @@ class AuditEvent(Base):
     user_id = Column(String, ForeignKey("users.id"), nullable=True, index=True)
     session_id = Column(String, ForeignKey("sessions.id"), nullable=True, index=True)
     event_type = Column(String, nullable=False)
-    timestamp = Column(DateTime, server_default="CURRENT_TIMESTAMP", nullable=False)
+    ip_address = Column(String(45), nullable=True)
+    timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
     detail = Column(JSON, nullable=True)
 
     user = relationship("User", back_populates="audit_events")
     session = relationship("Session", back_populates="audit_events")
-# Existing content continues...
 
-# Conversation models
-from sqlalchemy import Integer, Text, LargeBinary
+# ---------------------------------------------------------------------------
+# Conversation & Experiment Models
+# ---------------------------------------------------------------------------
 
 class Conversation(Base):
     __tablename__ = "conversations"
     id = Column(String, primary_key=True, default=_generate_uuid)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    # members relationship defined below
     messages = relationship("Message", back_populates="conversation", cascade="all, delete-orphan")
     attachments = relationship("Attachment", back_populates="conversation", cascade="all, delete-orphan")
 
@@ -108,7 +107,6 @@ class Message(Base):
     id = Column(String, primary_key=True, default=_generate_uuid)
     conversation_id = Column(String, ForeignKey("conversations.id"), nullable=False, index=True)
     sender_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
-    # encrypted payload stored as JSON string
     payload = Column(JSON, nullable=False)
     cover_sha256 = Column(String(64), nullable=True)
     stego_sha256 = Column(String(64), nullable=True)
@@ -146,5 +144,3 @@ class Attachment(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     conversation = relationship("Conversation", back_populates="attachments")
     uploader = relationship("User")
-
-# End of file

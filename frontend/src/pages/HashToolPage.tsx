@@ -556,3 +556,4 @@ export const HashToolPage: React.FC = () => {
     </div>
   );
 };
+

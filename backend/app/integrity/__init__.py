@@ -134,3 +134,4 @@ def verify_hmac(key: bytes, data: bytes, expected_hmac_hex: str) -> bool:
     """Constant-time verification of HMAC-SHA256."""
     actual_hmac = compute_hmac_sha256(key, data)
     return verify_digest(expected_hmac_hex, actual_hmac)
+
