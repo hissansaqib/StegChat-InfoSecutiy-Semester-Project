@@ -1,25 +1,21 @@
-"""Import-boundary tests verifying clean modular architecture.
+"""Import-boundary tests verifying clean modular architecture and crypto isolation.
 
 Rules:
-1. Carriers (backend/app/carriers/**) must NOT import anything from:
+1. Only `backend/app/crypto` may import from `cryptography`.
+2. Carriers (`backend/app/carriers/**`) must NOT import anything from:
    - backend.app.api
    - backend.app.db
    - fastapi
    - sqlalchemy
-
-2. Bench, Analysis, and Recommender must NEVER import a concrete carrier implementation:
-   - from backend.app.carriers.fake_carrier
-   - from backend.app.carriers.png_lsb
-   - from backend.app.carriers.wav_lsb
-   - from backend.app.carriers.text_zw
+   - cryptography
+3. Bench, Analysis, and Recommender must NEVER import a concrete carrier implementation.
 """
 
 import ast
-import os
 import pathlib
 import pytest
 
-BACKEND_DIR = pathlib.Path(__file__).parent.parent / "app"
+BACKEND_APP_DIR = pathlib.Path(__file__).parent.parent / "app"
 
 def get_python_files(directory: pathlib.Path) -> list[pathlib.Path]:
     return [p for p in directory.rglob("*.py") if "__pycache__" not in p.parts]
@@ -41,12 +37,30 @@ def get_imported_modules(file_path: pathlib.Path) -> list[str]:
                 imports.append(node.module)
     return imports
 
+def test_cryptography_import_isolation():
+    """Verify that NO file outside backend/app/crypto imports from cryptography."""
+    crypto_dir = BACKEND_APP_DIR / "crypto"
+
+    for py_file in get_python_files(BACKEND_APP_DIR):
+        # Allow files inside backend/app/crypto
+        if py_file.is_relative_to(crypto_dir):
+            continue
+
+        imports = get_imported_modules(py_file)
+        for imp in imports:
+            assert not imp.startswith("cryptography"), (
+                f"Architecture violation in {py_file.relative_to(BACKEND_APP_DIR)}: "
+                f"Directly imports '{imp}'. "
+                f"All cryptographic operations MUST go through backend.app.crypto."
+            )
+
 def test_carriers_boundary_isolation():
-    """Verify carriers import nothing from api, db, fastapi, or sqlalchemy."""
-    carriers_dir = BACKEND_DIR / "carriers"
+    """Verify carriers import nothing from api, db, fastapi, sqlalchemy, or cryptography."""
+    carriers_dir = BACKEND_APP_DIR / "carriers"
     forbidden_prefixes = (
         "fastapi",
         "sqlalchemy",
+        "cryptography",
         "backend.app.api",
         "backend.app.db",
         "app.api",
@@ -65,10 +79,10 @@ def test_carriers_boundary_isolation():
 def test_bench_analysis_recommender_isolation():
     """Verify bench, analysis, and recommender never import concrete carriers directly."""
     target_files = [
-        BACKEND_DIR / "api" / "bench.py",
-        BACKEND_DIR / "api" / "analysis.py",
-        BACKEND_DIR / "api" / "recommend.py",
-        BACKEND_DIR / "core" / "recommender.py",
+        BACKEND_APP_DIR / "api" / "bench.py",
+        BACKEND_APP_DIR / "api" / "analysis.py",
+        BACKEND_APP_DIR / "api" / "recommend.py",
+        BACKEND_APP_DIR / "core" / "recommender.py",
     ]
 
     concrete_carrier_modules = (

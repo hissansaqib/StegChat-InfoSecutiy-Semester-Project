@@ -113,3 +113,4 @@ def parse_frame(frame_bytes: bytes, seed: bytes | str | None) -> bytes:
         raise ValueError(f"CRC32 mismatch (expected {expected_crc:#x}, computed {actual_crc:#x}). Invalid seed or corrupted carrier.")
 
     return payload
+

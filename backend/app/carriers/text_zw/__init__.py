@@ -146,3 +146,4 @@ class TextZwCarrier(Carrier):
             "zero_width_chars": zw_count,
             "has_hidden_text": zw_count > 0,
         }
+

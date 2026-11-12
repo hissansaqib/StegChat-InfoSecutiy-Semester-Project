@@ -1,0 +1,92 @@
+[
+  {
+    "cipher_service": "AtRestCipher",
+    "alg": "aes-256-gcm",
+    "sample_id": 0,
+    "plaintext_b64": "aGVsbG8gd29ybGQ=",
+    "aad_b64": "dGVzdC1hYWQtMQ==",
+    "envelope": {
+      "v": 1,
+      "alg": "aes-256-gcm",
+      "key_id": "master-v1",
+      "nonce": "9Tp+n/U108qfJuYu",
+      "ciphertext": "Fz8bLw+uXHFn/sV485fb/3TkOYzaJHNO0fVo",
+      "aad_hash": "IXYnvS7dejGFHFktXFkPzRUt98LxCYJZ4F8lmepUtxQ="
+    }
+  },
+  {
+    "cipher_service": "AtRestCipher",
+    "alg": "aes-256-gcm",
+    "sample_id": 1,
+    "plaintext_b64": "AAEC",
+    "aad_b64": "",
+    "envelope": {
+      "v": 1,
+      "alg": "aes-256-gcm",
+      "key_id": "master-v1",
+      "nonce": "fiGkwoRybmCV7I68",
+      "ciphertext": "RCIYp+gBV36vk7S34PF3wqB/bA==",
+      "aad_hash": ""
+    }
+  },
+  {
+    "cipher_service": "AtRestCipher",
+    "alg": "aes-256-gcm",
+    "sample_id": 2,
+    "plaintext_b64": "VGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIHRoZSBsYXp5IGRvZw==",
+    "aad_b64": "bWV0YWRhdGE=",
+    "envelope": {
+      "v": 1,
+      "alg": "aes-256-gcm",
+      "key_id": "master-v1",
+      "nonce": "Jw0QYLZGGTK/c5YD",
+      "ciphertext": "iZv/gSpPn7Su+MC78R4TJjSgxv9ryK+JDtSHNaCc6J66V/F5z/BAMX4usizGGuA+gEaBTht2QpUHEKY=",
+      "aad_hash": "RUR7evvV5UT30PHfD8zSYBTZhQEwq9PwILif+WuCB58="
+    }
+  },
+  {
+    "cipher_service": "AtRestCipher",
+    "alg": "chacha20-poly1305",
+    "sample_id": 0,
+    "plaintext_b64": "aGVsbG8gd29ybGQ=",
+    "aad_b64": "dGVzdC1hYWQtMQ==",
+    "envelope": {
+      "v": 1,
+      "alg": "chacha20-poly1305",
+      "key_id": "master-v1",
+      "nonce": "LIODduGIsBwDIjNZ",
+      "ciphertext": "uzuA+Ha6J0X/PwSl9NxRazPA4lU4XrYgtXAa",
+      "aad_hash": "IXYnvS7dejGFHFktXFkPzRUt98LxCYJZ4F8lmepUtxQ="
+    }
+  },
+  {
+    "cipher_service": "AtRestCipher",
+    "alg": "chacha20-poly1305",
+    "sample_id": 1,
+    "plaintext_b64": "AAEC",
+    "aad_b64": "",
+    "envelope": {
+      "v": 1,
+      "alg": "chacha20-poly1305",
+      "key_id": "master-v1",
+      "nonce": "kYr6dpJWy+z/vIF/",
+      "ciphertext": "cUeOzcC0wjwWo0qjJKKE9zejkg==",
+      "aad_hash": ""
+    }
+  },
+  {
+    "cipher_service": "AtRestCipher",
+    "alg": "chacha20-poly1305",
+    "sample_id": 2,
+    "plaintext_b64": "VGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIHRoZSBsYXp5IGRvZw==",
+    "aad_b64": "bWV0YWRhdGE=",
+    "envelope": {
+      "v": 1,
+      "alg": "chacha20-poly1305",
+      "key_id": "master-v1",
+      "nonce": "/toUMoE7LT7+uEUn",
+      "ciphertext": "kyXWQqCFuUJ+S6H1ANdGEInvk8Pm4b5jLaGuAQRT3pBu9LzJepyimlDIp+y4u9UVGEyR8ec+LYd+TP4=",
+      "aad_hash": "RUR7evvV5UT30PHfD8zSYBTZhQEwq9PwILif+WuCB58="
+    }
+  }
+]

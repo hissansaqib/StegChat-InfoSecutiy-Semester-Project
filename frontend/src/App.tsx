@@ -9,6 +9,7 @@ import { StegoBenchPage } from './pages/StegoBenchPage';
 import { AnalysisPage } from './pages/AnalysisPage';
 import { RecommendationPage } from './pages/RecommendationPage';
 import { HistoryPage } from './pages/HistoryPage';
+import { SettingsPage } from './pages/SettingsPage';
 
 export const App: React.FC = () => {
   return (
@@ -25,6 +26,7 @@ export const App: React.FC = () => {
         <Route path="analysis" element={<AnalysisPage />} />
         <Route path="recommender" element={<RecommendationPage />} />
         <Route path="history" element={<HistoryPage />} />
+        <Route path="settings" element={<SettingsPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

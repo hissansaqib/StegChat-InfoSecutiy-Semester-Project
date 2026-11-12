@@ -3,6 +3,7 @@ import { api } from '../api/client';
 
 export const GuidedDemoPage: React.FC = () => {
   const [carrierId, setCarrierId] = useState('png_lsb');
+  const [algorithm, setAlgorithm] = useState('aes-256-gcm');
   const [secretMessage, setSecretMessage] = useState('Confidential Project Apollo Coordinates: 37.7749,-122.4194');
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -13,15 +14,16 @@ export const GuidedDemoPage: React.FC = () => {
     setCurrentStep(2);
 
     try {
-      // Step 1 & 2: Embedding
+      // Step 1 & 2: Embedding with selectable AEAD cipher
       const embedRes = await api.labEmbed({
         carrier_id: carrierId,
         message: secretMessage,
+        algorithm: algorithm,
       });
 
       setCurrentStep(3);
 
-      // Step 3: Extraction
+      // Step 3: Extraction with cipher verification
       const extractRes = await api.labExtract({
         carrier_id: carrierId,
         carrier_bytes: embedRes.carrier_bytes,
@@ -100,11 +102,17 @@ export const GuidedDemoPage: React.FC = () => {
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-              Pipeline Mode
+              Cryptographic Cipher (AEAD)
             </label>
-            <div className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-400 text-sm">
-              Standard AES-256-GCM + Stego Embed
-            </div>
+            <select
+              value={algorithm}
+              disabled={loading}
+              onChange={(e) => setAlgorithm(e.target.value)}
+              className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-indigo-500 font-mono text-xs"
+            >
+              <option value="aes-256-gcm">AES-256-GCM (Hardware Accelerated AEAD)</option>
+              <option value="chacha20-poly1305">ChaCha20-Poly1305 (RFC 8439 Authenticated)</option>
+            </select>
           </div>
         </div>
 

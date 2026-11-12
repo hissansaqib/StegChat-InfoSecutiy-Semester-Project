@@ -1,5 +1,6 @@
-"""Conversations and messaging router."""
+"""Conversations and messaging router with Tier 1 At-Rest Cipher Encryption."""
 
+import json
 import uuid
 from datetime import datetime
 from typing import List, Optional, Any
@@ -9,6 +10,7 @@ from sqlalchemy.orm import Session
 from ..db.session import get_db
 from ..db.models import Conversation, ConversationMember, Message, User
 from ..auth.dependencies import get_current_user
+from ..crypto import get_at_rest_cipher
 
 router = APIRouter(tags=["conversations"])
 
@@ -21,6 +23,7 @@ class MessageSendRequest(BaseModel):
     carrier_id: Optional[str] = None
     carrier_bytes: Optional[str] = None  # Base64 stego medium
     is_stego: bool = False
+    algorithm: Optional[str] = "aes-256-gcm"
 
 @router.get("/conversations")
 def list_conversations(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -88,7 +91,6 @@ def list_messages(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    # Verify membership
     mem = (
         db.query(ConversationMember)
         .filter(
@@ -106,15 +108,35 @@ def list_messages(
         .order_by(Message.created_at.asc())
         .all()
     )
+
+    arc = get_at_rest_cipher()
     results = []
+
     for m in msgs:
         sender = db.query(User).filter(User.id == m.sender_id).first()
+        raw_payload = m.payload
+
+        # Decrypt if payload is a stored CryptoEnvelope
+        if isinstance(raw_payload, dict) and "ciphertext" in raw_payload and "nonce" in raw_payload:
+            try:
+                decrypted_bytes = arc.decrypt(
+                    envelope=raw_payload,
+                    aad=conversation_id.encode("utf-8"),
+                )
+                decrypted_payload = json.loads(decrypted_bytes.decode("utf-8"))
+            except Exception:
+                # Decryption failure fallback
+                decrypted_payload = {"text": "[Ciphertext verification failed]", "is_stego": False}
+        else:
+            # Legacy unencrypted payload
+            decrypted_payload = raw_payload
+
         results.append({
             "id": m.id,
             "sender_id": m.sender_id,
             "sender_name": sender.display_name if sender else "Unknown",
             "is_me": m.sender_id == current_user.id,
-            "payload": m.payload,
+            "payload": decrypted_payload,
             "created_at": m.created_at.isoformat() if m.created_at else None,
         })
     return results
@@ -138,19 +160,28 @@ def send_message(
         raise HTTPException(status_code=403, detail="Not a member of this conversation")
 
     msg_id = str(uuid.uuid4())
-    msg_payload = {
+    plain_dict = {
         "text": req.content,
         "is_stego": req.is_stego,
         "carrier_id": req.carrier_id,
         "carrier_bytes": req.carrier_bytes,
     }
 
+    # Encrypt at rest into versioned envelope before saving to database
+    arc = get_at_rest_cipher()
+    alg = req.algorithm or "aes-256-gcm"
+    envelope = arc.encrypt(
+        plaintext=json.dumps(plain_dict).encode("utf-8"),
+        alg=alg,
+        aad=conversation_id.encode("utf-8"),
+    )
+
     msg = Message(
         id=msg_id,
         conversation_id=conversation_id,
         sender_id=current_user.id,
-        payload=msg_payload,
+        payload=envelope.dict(),  # Stored strictly as ciphertext envelope
     )
     db.add(msg)
     db.commit()
-    return {"id": msg_id, "status": "sent"}
+    return {"id": msg_id, "status": "sent", "algorithm": envelope.alg}

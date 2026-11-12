@@ -87,3 +87,4 @@ def test_carrier_measure_and_features(carrier_id: str):
     feats = carrier.features(stego)
     assert isinstance(feats, dict)
     assert len(feats) > 0
+

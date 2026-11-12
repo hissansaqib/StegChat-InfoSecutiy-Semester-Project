@@ -38,12 +38,20 @@ export const api = {
   me: () =>
     fetchJson('/auth/me'),
 
+  // Crypto & Settings
+  listCryptoAlgorithms: () =>
+    fetchJson('/crypto/algorithms'),
+  getCryptoSettings: () =>
+    fetchJson('/crypto/settings'),
+
   // Carriers & Lab
   listCarriers: () =>
     fetchJson('/carriers'),
-  labEmbed: (data: { carrier_id: string; message: string; key?: string }) =>
+  getCarrierCapacity: (carrierId: string) =>
+    fetchJson(`/carriers/${carrierId}/capacity`, { method: 'POST' }),
+  labEmbed: (data: { carrier_id: string; message: string; algorithm?: string; passphrase?: string; seed?: string }) =>
     fetchJson('/lab/embed', { method: 'POST', body: JSON.stringify(data) }),
-  labExtract: (data: { carrier_id: string; carrier_bytes: string; key?: string }) =>
+  labExtract: (data: { carrier_id: string; carrier_bytes: string; passphrase?: string; seed?: string }) =>
     fetchJson('/lab/extract', { method: 'POST', body: JSON.stringify(data) }),
 
   // Conversations & Chat
@@ -53,13 +61,13 @@ export const api = {
     fetchJson('/conversations', { method: 'POST', body: JSON.stringify(data) }),
   listMessages: (convId: string) =>
     fetchJson(`/conversations/${convId}/messages`),
-  sendMessage: (convId: string, data: { content: string; carrier_id?: string; carrier_bytes?: string; is_stego?: boolean }) =>
+  sendMessage: (convId: string, data: { content: string; carrier_id?: string; carrier_bytes?: string; is_stego?: boolean; algorithm?: string }) =>
     fetchJson(`/conversations/${convId}/messages`, { method: 'POST', body: JSON.stringify(data) }),
   listUsers: () =>
     fetchJson('/users'),
 
   // Bench
-  runBench: (data: { carrier_id: string; payload_size: number; iterations: number; name?: string }) =>
+  runBench: (data: { carrier_id: string; payload_size: number; iterations: number; name?: string; algorithm?: string }) =>
     fetchJson('/bench/run', { method: 'POST', body: JSON.stringify(data) }),
   listBenchSuites: () =>
     fetchJson('/bench/suites'),

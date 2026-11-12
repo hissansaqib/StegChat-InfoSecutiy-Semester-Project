@@ -100,3 +100,4 @@ def validate_upload(
     storage_name = generate_storage_name(ext)
 
     return safe_name, storage_name, detected_mime
+
