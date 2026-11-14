@@ -245,10 +245,13 @@ def test_timing_and_response_consistency_for_unknown_user_vs_wrong_password(clie
         "password": "WrongPassword2026!#",
     })
 
-    # Responses must be identical to avoid username enumeration
+    # Responses must be identical to avoid username enumeration (ignoring dynamic request_id)
     assert r_unknown.status_code == 401
     assert r_wrong_pwd.status_code == 401
-    assert r_unknown.json() == r_wrong_pwd.json()
+    u_body = r_unknown.json()
+    w_body = r_wrong_pwd.json()
+    assert u_body.get("error", {}).get("code") == w_body.get("error", {}).get("code")
+    assert u_body.get("error", {}).get("message") == w_body.get("error", {}).get("message")
 
 def test_password_change_revokes_other_sessions(app):
     client1 = TestClient(app)

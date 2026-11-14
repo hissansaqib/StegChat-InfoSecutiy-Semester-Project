@@ -7,7 +7,7 @@ import hashlib
 import os
 import re
 import time
-from typing import Dict, Tuple
+from typing import Dict
 from fastapi import HTTPException
 
 # Common passwords list for blacklist rejection

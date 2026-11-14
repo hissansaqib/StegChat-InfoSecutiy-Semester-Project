@@ -19,6 +19,7 @@ if config.config_file_name is not None:
 
 # we import the Base metadata from the project's models
 from backend.app.db.base import Base
+import backend.app.db.models  # ensure all models are registered on Base.metadata
 
 target_metadata = Base.metadata
 

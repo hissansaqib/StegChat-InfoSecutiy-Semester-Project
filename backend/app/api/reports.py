@@ -2,14 +2,13 @@
 
 import uuid
 from datetime import datetime
-from typing import List, Dict, Any, Optional
+from typing import Optional
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from ..db.session import get_db
 from ..db.models import ExperimentRun
-from ..integrity import compute_sha256
 
 router = APIRouter(tags=["reports"])
 

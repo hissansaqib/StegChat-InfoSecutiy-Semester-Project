@@ -90,7 +90,7 @@ class CryptoEnvelope(BaseModel):
 
     def to_compact_json(self) -> str:
         """Serialize envelope to compact single-line JSON."""
-        return json.dumps(self.dict(), separators=(",", ":"))
+        return json.dumps(self.model_dump(), separators=(",", ":"))
 
     def to_base64(self) -> str:
         """Serialize envelope to compact URL-safe Base64 string."""
@@ -267,10 +267,28 @@ class AtRestCipher:
                 raise CryptoConfigurationError(
                     "FATAL: STEGCHAT_MASTER_KEY environment variable is required in production! Refusing to start."
                 )
-            # Development mode auto-generation
+            # In development, persist key to gitignored data/.dev_master_key so restart doesn't break decryptability
+            import pathlib
+            core_dir = pathlib.Path(__file__).resolve().parent
+            repo_root = core_dir.parent.parent.parent
+            dev_key_file = repo_root / "data" / ".dev_master_key"
+            dev_key_file.parent.mkdir(exist_ok=True)
+            if dev_key_file.exists():
+                try:
+                    stored_b64 = dev_key_file.read_text(encoding="utf-8").strip()
+                    dev_key = base64.b64decode(stored_b64)
+                    if len(dev_key) == 32:
+                        self._key_store[self.active_key_id] = dev_key
+                        return
+                except Exception:
+                    pass
             dev_key = os.urandom(32)
+            try:
+                dev_key_file.write_text(base64.b64encode(dev_key).decode("ascii"), encoding="utf-8")
+            except Exception:
+                pass
             self._key_store[self.active_key_id] = dev_key
-            print("[Crypto] WARNING: STEGCHAT_MASTER_KEY not set. Auto-generated ephemeral development key.")
+            print("[Crypto] Notice: STEGCHAT_MASTER_KEY not set in env. Using persisted dev key in data/.dev_master_key.")
             return
 
         try:

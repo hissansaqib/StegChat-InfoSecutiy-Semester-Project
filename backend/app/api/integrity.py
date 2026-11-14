@@ -9,14 +9,12 @@ Endpoints:
 
 from __future__ import annotations
 
-import base64
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
 from ..integrity import (
     compute_data_digests,
-    compute_stream_digest,
     compute_hmac_sha256,
     verify_digest,
     verify_hmac,

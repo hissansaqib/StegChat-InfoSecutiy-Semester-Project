@@ -21,9 +21,9 @@ import secrets
 import time
 import uuid
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
-from pydantic import BaseModel, Field
+from typing import Any, Dict, Optional
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from ..db.session import get_db

@@ -2,6 +2,8 @@
 *.db
 *.db-shm
 *.db-wal
+data/
+.dev_master_key
 uploads/
 node_modules/
 .venv/
@@ -10,4 +12,5 @@ __pycache__/
 models/*.joblib
 dist/
 coverage/
+
 

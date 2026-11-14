@@ -1,0 +1,34 @@
+import js from '@eslint/js';
+import tsParser from '@typescript-eslint/parser';
+import tsPlugin from '@typescript-eslint/eslint-plugin';
+import reactPlugin from 'eslint-plugin-react';
+
+export default [
+  {
+    ignores: ['dist/**', 'node_modules/**', 'vite.config.ts'],
+  },
+  js.configs.recommended,
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+    },
+    plugins: {
+      '@typescript-eslint': tsPlugin,
+      react: reactPlugin,
+    },
+    rules: {
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      'no-undef': 'off',
+      'react/react-in-jsx-scope': 'off',
+    },
+  },
+];

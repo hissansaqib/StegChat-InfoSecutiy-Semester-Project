@@ -1,25 +1,60 @@
 """Shared error handling contracts for StegChat backend.
 
 Defines custom exceptions that can be raised in business logic and translated
-into appropriate HTTP responses by FastAPI exception handlers.
+into standard {"error": {"code", "message", "request_id"}} HTTP responses.
 """
 
-from fastapi import HTTPException
-from typing import Any
+from __future__ import annotations
+from typing import Optional
 
-class APIError(HTTPException):
-    """Base class for API errors.
+class StegChatError(Exception):
+    """Base class for all application domain exceptions."""
+    code: str = "INTERNAL_ERROR"
+    status_code: int = 500
 
-    Subclass this to create domain‑specific errors. ``status_code`` defaults to
-    400 (bad request) but can be overridden.
-    """
+    def __init__(self, message: str, code: Optional[str] = None, status_code: Optional[int] = None):
+        super().__init__(message)
+        self.message = message
+        if code:
+            self.code = code
+        if status_code:
+            self.status_code = status_code
 
-    def __init__(self, detail: Any, status_code: int = 400, headers: dict | None = None):
-        super().__init__(status_code=status_code, detail=detail, headers=headers)
+class CapacityExceeded(StegChatError):
+    code = "CAPACITY_EXCEEDED"
+    status_code = 400
 
-class NotImplementedError(APIError):
-    """Raised for stub endpoints that are not yet implemented."""
+    def __init__(self, message: str = "Payload exceeds carrier capacity", available: int = 0, required: int = 0):
+        super().__init__(message)
+        self.available = available
+        self.required = required
 
-    def __init__(self, detail: str = "Not implemented yet"):
-        super().__init__(detail=detail, status_code=501)
+class UnsupportedFormat(StegChatError):
+    code = "UNSUPPORTED_FORMAT"
+    status_code = 415
+
+class CorruptCarrier(StegChatError):
+    code = "CORRUPT_CARRIER"
+    status_code = 400
+
+class ExtractionFailed(StegChatError):
+    code = "EXTRACTION_FAILED"
+    status_code = 400
+
+class AuthenticationFailed(StegChatError):
+    code = "AUTHENTICATION_FAILED"
+    status_code = 401
+
+class PermissionDenied(StegChatError):
+    code = "PERMISSION_DENIED"
+    status_code = 403
+
+class NotFound(StegChatError):
+    code = "NOT_FOUND"
+    status_code = 404
+
+class ValidationFailed(StegChatError):
+    code = "VALIDATION_FAILED"
+    status_code = 422
+
 

@@ -12,12 +12,10 @@ Security guarantees:
 
 from __future__ import annotations
 
-import hmac
 import os
 import re
 import secrets
 import smtplib
-from datetime import datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -106,11 +104,14 @@ The StegChat Security Team
         except Exception as e:
             print(f"[MFA] SMTP send warning: {e}. Falling back to console output.")
 
-    # Development console output
-    print(f"\n==================================================")
-    print(f"[STEGCHAT MFA OTP CODE]")
-    print(f"Target Email : {to_email}")
-    print(f"Purpose      : {purpose}")
-    print(f"Your OTP Code: >>> {otp_code} <<<")
-    print(f"Expires      : 10 minutes")
-    print(f"==================================================\n")
+    # Development console output: only when APP_ENV=development
+    from .config import Settings
+    app_env = Settings().app_env.lower()
+    if app_env == "development":
+        print("\n==================================================")
+        print("[STEGCHAT MFA OTP CODE]")
+        print(f"Target Email : {to_email}")
+        print(f"Purpose      : {purpose}")
+        print(f"Your OTP Code: >>> {otp_code} <<<")
+        print("Expires      : 10 minutes")
+        print("==================================================\n")

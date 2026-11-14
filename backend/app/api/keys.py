@@ -2,7 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from typing import Any, Dict, Optional
 import json
+from sqlalchemy.orm import Session
 
+from ..db.session import get_db
 from ..db.models import User
 from ..auth.dependencies import get_current_user
 
@@ -32,9 +34,13 @@ async def get_my_key_bundle(current_user: User = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail="Corrupted key bundle")
 
 @router.get("/keys/{user_id}/public", response_model=dict, summary="Get a user's public JWK and fingerprint")
-async def get_user_public_key(user_id: str, current_user: User = Depends(get_current_user)):
+async def get_user_public_key(
+    user_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     # Authentication required but we do not restrict who can view public keys.
-    db_user = current_user.session.query(User).filter(User.id == user_id).first()
+    db_user = db.query(User).filter(User.id == user_id).first()
     if not db_user or not db_user.key_bundle:
         raise HTTPException(status_code=404, detail="User or key bundle not found")
     try:
@@ -44,10 +50,14 @@ async def get_user_public_key(user_id: str, current_user: User = Depends(get_cur
         raise HTTPException(status_code=500, detail="Corrupted key bundle")
 
 @router.put("/keys/bundle", response_model=KeyBundle, summary="Upload or update own key bundle (supports rotation)")
-async def upload_key_bundle(bundle: KeyBundle, current_user: User = Depends(get_current_user)):
+async def upload_key_bundle(
+    bundle: KeyBundle,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     # Store the bundle as JSON string. Overwrite existing.
-    current_user.key_bundle = json.dumps(bundle.dict())
-    current_user.session.add(current_user)
-    current_user.session.commit()
+    current_user.key_bundle = json.dumps(bundle.model_dump())
+    db.add(current_user)
+    db.commit()
     return bundle
 

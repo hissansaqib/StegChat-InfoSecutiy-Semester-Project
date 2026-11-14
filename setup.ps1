@@ -33,12 +33,12 @@ if ($nodeVersion -match "^(\d+)\.(\d+)\.(\d+)$") {
     Write-Error "Node not found."
     exit 1
 }
-# Install backend dependencies via Poetry
+# Install backend dependencies via pip using requirements.txt
 Write-Host "Installing backend dependencies..."
-py -3.14-64 -m poetry -C backend install
+py -3.14-64 -m pip install -r "$PSScriptRoot\backend\requirements.txt"
 # Verify backend import
 Write-Host "Verifying backend import..."
-py -3.14-64 -m poetry -C backend run python -c "import backend.app.main; print('Backend import OK')"
+py -3.14-64 -c "import backend.app.main; print('Backend import OK')"
 # Install frontend dependencies and build
 Set-Location "$PSScriptRoot\frontend"
 Write-Host "Installing frontend dependencies..."

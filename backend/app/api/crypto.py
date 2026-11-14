@@ -1,6 +1,6 @@
 """Crypto information and algorithm catalog router."""
 
-from typing import List, Dict, Any
+from typing import List, Dict
 from fastapi import APIRouter
 from pydantic import BaseModel
 from ..crypto import SUPPORTED_ALGORITHMS, get_at_rest_cipher

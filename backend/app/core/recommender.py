@@ -6,8 +6,6 @@ aggregated statistics produced by the bench module (see `backend/app/core/bench.
 
 from __future__ import annotations
 
-import json
-import math
 from typing import Dict, List, Any, Tuple, Optional
 
 from pydantic import BaseModel, Field, validator

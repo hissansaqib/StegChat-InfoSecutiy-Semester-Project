@@ -122,8 +122,11 @@ class WavLsbCarrier(Carrier):
 
         slots = generate_positions(seed, total_slots, needed_bits)
 
+        # View as uint16 for safe, well-defined LSB manipulation without signed overflow
+        samples_u16 = samples.view(np.uint16)
+        mask_u16 = np.uint16(0xFFFE)
         for slot_idx, bit_val in zip(slots, frame_bits):
-            samples[slot_idx] = (samples[slot_idx] & ~1) | bit_val
+            samples_u16[slot_idx] = (samples_u16[slot_idx] & mask_u16) | np.uint16(bit_val)
 
         out_buf = io.BytesIO()
         with wave.open(out_buf, "wb") as wf:

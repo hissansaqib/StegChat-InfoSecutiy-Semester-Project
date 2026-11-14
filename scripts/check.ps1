@@ -1,25 +1,41 @@
-# PowerShell script to run full project checks
-# Backend: lint with ruff and run pytest
-# Frontend: lint, run Vitest, and build the production bundle
-
-# Exit on first error
+# PowerShell script to run full project checks across backend and frontend
+# Exit immediately on any error
 $ErrorActionPreference = "Stop"
 
-Write-Host "Running backend lint (ruff)..."
-poetry run ruff backend/app
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$RepoRoot = Split-Path -Parent $ScriptDir
 
-Write-Host "Running backend tests (pytest)..."
-poetry run pytest backend/tests
+Set-Location $RepoRoot
 
-Write-Host "Running frontend lint..."
-cd frontend
+Write-Host "==========================================" -ForegroundColor Cyan
+Write-Host "  StegChat Comprehensive Verification" -ForegroundColor Cyan
+Write-Host "==========================================" -ForegroundColor Cyan
+
+Write-Host "`n[1/5] Running Backend Ruff Lint..." -ForegroundColor Yellow
+python -m ruff check backend/app --config backend/pyproject.toml
+if ($LASTEXITCODE -ne 0) { Write-Error "Backend linting failed"; exit 1 }
+
+Write-Host "`n[2/5] Running Backend Pytest Suite..." -ForegroundColor Yellow
+python -m pytest backend/tests -ra
+if ($LASTEXITCODE -ne 0) { Write-Error "Backend test suite failed"; exit 1 }
+
+Write-Host "`n[3/5] Running Frontend TypeScript Typecheck..." -ForegroundColor Yellow
+Set-Location "$RepoRoot\frontend"
+npx tsc --noEmit
+if ($LASTEXITCODE -ne 0) { Write-Error "Frontend TypeScript validation failed"; exit 1 }
+
+Write-Host "`n[4/5] Running Frontend ESLint and Vitest Suite..." -ForegroundColor Yellow
 npm run lint
+if ($LASTEXITCODE -ne 0) { Write-Error "Frontend ESLint failed"; exit 1 }
 
-Write-Host "Running frontend tests (Vitest)..."
-npm run test
+npm test
+if ($LASTEXITCODE -ne 0) { Write-Error "Frontend Vitest suite failed"; exit 1 }
 
-Write-Host "Building frontend..."
+Write-Host "`n[5/5] Building Frontend Production Bundle..." -ForegroundColor Yellow
 npm run build
+if ($LASTEXITCODE -ne 0) { Write-Error "Frontend production build failed"; exit 1 }
 
-Write-Host "All checks completed successfully."
-
+Set-Location $RepoRoot
+Write-Host "`n==========================================" -ForegroundColor Green
+Write-Host "  ALL CHECKS PASSED WITH ZERO ERRORS!" -ForegroundColor Green
+Write-Host "==========================================" -ForegroundColor Green

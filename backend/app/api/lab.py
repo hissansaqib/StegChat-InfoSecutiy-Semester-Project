@@ -4,10 +4,11 @@ import base64
 import time
 from typing import Optional
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from ..carriers import get_carrier
 from ..core.carrier import CapacityExceeded, UnsupportedFormat, ExtractionFailed
-from ..crypto import LabCipher, CryptoEnvelope, UnknownAlgorithmError, CryptoDecryptionError
+from ..core.upload_validation import validate_upload
+from ..crypto import LabCipher, CryptoEnvelope, UnknownAlgorithmError
 from ..integrity import compute_sha256
 
 router = APIRouter(tags=["lab"])
@@ -18,6 +19,7 @@ class LabEmbedRequest(BaseModel):
     algorithm: Optional[str] = "aes-256-gcm"  # aes-256-gcm or chacha20-poly1305
     passphrase: Optional[str] = None
     seed: Optional[str] = None
+    cover_bytes: Optional[str] = None  # Optional Base64 uploaded cover
 
 class LabExtractRequest(BaseModel):
     carrier_id: str
@@ -47,10 +49,27 @@ def lab_embed(req: LabEmbedRequest):
     # Envelope serialized to compact bytes to embed into carrier
     envelope_bytes = envelope.to_compact_json().encode("utf-8")
 
+    # If cover_bytes provided, decode and validate cover
+    cover_data = b""
+    if req.cover_bytes:
+        try:
+            cover_data = base64.b64decode(req.cover_bytes)
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid Base64 in cover_bytes")
+        try:
+            validate_upload(cover_data, filename=f"cover.{req.carrier_id.split('_')[0]}", allowed_mimes=carrier.info.accepted_mime)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+
+        # Check capacity
+        cap = carrier.capacity(cover_data)
+        if len(envelope_bytes) > cap:
+            raise HTTPException(status_code=400, detail=f"Payload size ({len(envelope_bytes)} bytes) exceeds cover capacity ({cap} bytes)")
+
     t0 = time.perf_counter()
     try:
         stego_bytes = carrier.embed(
-            cover=b"",
+            cover=cover_data,
             payload=envelope_bytes,
             params={"seed": seed},
         )
@@ -86,6 +105,13 @@ def lab_extract(req: LabExtractRequest):
         stego_bytes = base64.b64decode(req.carrier_bytes)
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid base64 in carrier_bytes")
+
+    # Validate stego bytes against carrier accepted MIME types if applicable
+    if carrier.info.accepted_mime:
+        try:
+            validate_upload(stego_bytes, filename=f"stego.{req.carrier_id.split('_')[0]}", allowed_mimes=carrier.info.accepted_mime)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
 
     passphrase = req.passphrase or "stegchat-lab-default-secret-seed"
     seed = req.seed or passphrase

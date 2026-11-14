@@ -2,10 +2,10 @@
 
 import os
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Response
-from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 import uuid
 
+from ..core.config import Settings
 from ..db.session import get_db
 from ..db.models import Attachment, ConversationMember, User
 from ..auth.dependencies import get_current_user
@@ -14,7 +14,8 @@ from ..core.upload_validation import validate_upload
 
 router = APIRouter(tags=["attachments"])
 
-UPLOAD_STORAGE_DIR = os.path.abspath(os.getenv("UPLOAD_DIR", "uploads"))
+_settings = Settings()
+UPLOAD_STORAGE_DIR = os.path.abspath(_settings.upload_dir)
 os.makedirs(UPLOAD_STORAGE_DIR, exist_ok=True)
 
 @router.post("/conversations/{conversation_id}/attachments")

@@ -20,20 +20,38 @@ async function fetchJson(endpoint: string, options: RequestInit = {}) {
     }
   }
 
-  const res = await fetch(`${BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-    credentials: 'include',
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}${endpoint}`, {
+      ...options,
+      headers,
+      credentials: 'include',
+    });
+  } catch (netErr: any) {
+    throw new Error('Backend server is unreachable. Please verify StegChat backend is running.');
+  }
 
   if (!res.ok) {
     let errorDetail = 'Request failed';
     try {
       const err = await res.json();
-      errorDetail = err.detail || JSON.stringify(err);
+      if (err.error && err.error.message) {
+        errorDetail = err.error.message;
+      } else if (err.detail) {
+        errorDetail = typeof err.detail === 'string' ? err.detail : JSON.stringify(err.detail);
+      } else {
+        errorDetail = JSON.stringify(err);
+      }
     } catch {
-      errorDetail = res.statusText;
+      errorDetail = res.statusText || `Request failed with status ${res.status}`;
     }
+
+    if (res.status === 401 && !endpoint.startsWith('/auth/login') && !endpoint.startsWith('/auth/register')) {
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+    }
+
     throw new Error(errorDetail);
   }
   return res.json();

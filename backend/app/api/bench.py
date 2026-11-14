@@ -6,7 +6,7 @@ from typing import List, Dict, Any, Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from ..carriers import get_carrier
-from ..crypto import LabCipher, CryptoEnvelope, SUPPORTED_ALGORITHMS
+from ..crypto import LabCipher, CryptoEnvelope
 
 router = APIRouter(tags=["bench"])
 

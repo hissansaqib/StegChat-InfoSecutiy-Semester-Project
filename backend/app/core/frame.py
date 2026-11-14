@@ -15,7 +15,7 @@ from __future__ import annotations
 import hashlib
 import struct
 import zlib
-from typing import List, Sequence
+from typing import List
 import numpy as np
 
 FRAME_OVERHEAD = 8  # 4 bytes length + 4 bytes CRC32

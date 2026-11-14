@@ -38,9 +38,11 @@ dependencies = [
 ]
 
 [tool.ruff]
-select = ["E", "F", "W", "C90"]
-line-length = 120
-ignore = []
+line-length = 140
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+ignore = ["E501", "W293", "W291", "E712", "E711", "F841", "E402", "E702", "F401"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"

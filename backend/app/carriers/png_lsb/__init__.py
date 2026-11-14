@@ -118,8 +118,9 @@ class PngLsbCarrier(Carrier):
         slots = generate_positions(seed, total_slots, needed_bits)
         flat = arr.ravel()
 
+        mask_u8 = np.uint8(0xFE)
         for slot_idx, bit_val in zip(slots, frame_bits):
-            flat[slot_idx] = (flat[slot_idx] & ~1) | bit_val
+            flat[slot_idx] = (flat[slot_idx] & mask_u8) | np.uint8(bit_val)
 
         out_img = Image.fromarray(arr, mode="RGB")
         buf = io.BytesIO()

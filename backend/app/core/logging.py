@@ -1,5 +1,4 @@
 import logging
-from pathlib import Path
 
 # Create a logger for the application
 logger = logging.getLogger("stegchat")
